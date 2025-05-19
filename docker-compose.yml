@@ -3,12 +3,12 @@ version: "3.8"
 services:
   firmware-builder:
     build:
-      context: .
+      # Can point to remote repo (with .git suffix) or local context
+      context: https://github.com/3DJupp/platformio-docker-builder.git#main
       dockerfile: Dockerfile
       args:
-        PROJECT_DIR: ${PROJECT_DIR:-opendtu}
         GIT_REPO: ${GIT_REPO:-https://github.com/tbnobody/OpenDTU.git}
-        PIO_ENV:    ${PIO_ENV:-olimex_esp32_poe}
+        PIO_ENV:  ${PIO_ENV:-olimex_esp32_poe}
     container_name: pio_firmware_builder
     restart: "no"
     volumes:
