@@ -19,18 +19,15 @@ RUN pip install --no-cache-dir --upgrade pip \
 FROM pio-base AS builder
 
 # Build arguments (override as needed)
-ARG PROJECT_DIR=opendtu
 ARG GIT_REPO=https://github.com/tbnobody/OpenDTU.git
 ARG PIO_ENV=olimex_esp32_poe
-ENV PROJECT_DIR=${PROJECT_DIR} \
-    GIT_REPO=${GIT_REPO} \
+ENV GIT_REPO=${GIT_REPO} \
     PIO_ENV=${PIO_ENV}
 
 WORKDIR /workspace
 
-# Clone the specified repository into the project folder
-RUN git clone --depth=1 ${GIT_REPO} ${PROJECT_DIR}
-WORKDIR /workspace/${PROJECT_DIR}
+# Clone the specified repository into workspace root
+RUN git clone --depth=1 ${GIT_REPO} .
 
 # Build firmware for the specified environment
 RUN platformio run --environment $PIO_ENV
@@ -40,7 +37,7 @@ FROM busybox:latest AS artifacts
 WORKDIR /out
 
 # Copy the compiled firmware binary
-COPY --from=builder /workspace/${PROJECT_DIR}/.pio/build/$PIO_ENV/firmware.bin .
+COPY --from=builder /workspace/.pio/build/$PIO_ENV/firmware.bin .
 
 # Default command to list the extracted artifact
 CMD ["ls", "-l", "/out"]
