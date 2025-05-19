@@ -115,4 +115,13 @@ PIO_ENV=olimex_esp32_poe \
   docker-compose up --build --abort-on-container-exit
 ```
 
-You can now use this template for **any** PlatformIO project by changing the above variables.
+### Example for Portainer / GUI
+Just add the URL into your Portainer GUI `http(s)://IPorHostname:port/docker/images`
+![Bildschirmfoto vom 2025-05-19 20-25-14](https://github.com/user-attachments/assets/15644e9d-9b0e-4f5f-ac0b-ab28558e7669)
+After that is completed head to `http(s)://IPorHostname:port/docker/stacks/newstack` to create a stack.<br>
+**You could also create an own compose.yml or stack file for portainer**
+![Bildschirmfoto vom 2025-05-19 20-33-53](https://github.com/user-attachments/assets/3f5932a4-609a-4026-8466-bff9c75b1163)
+If needed, create or modify .env:<br>
+![Bildschirmfoto vom 2025-05-19 20-33-32](https://github.com/user-attachments/assets/ac5e0a6f-6708-43e2-9a8d-88f465feeadc)
+
+You should be able to use this template for **any** PlatformIO project by changing the above variables or the yaml.
