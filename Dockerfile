@@ -22,11 +22,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir platformio
 
 # ------------------------------------------------------------------------------
-# Stage 2: Bauen (mit Auto-Release-Erkennung)
+# Stage 2: Bauen (Auto-Release-Erkennung)
 # ------------------------------------------------------------------------------
 FROM pio-base AS builder
 
-# Args in Stage neu deklarieren
 ARG PROJECT_DIR
 ARG GIT_REPO
 ARG PIO_ENV
@@ -43,23 +42,21 @@ ENV PROJECT_DIR=${PROJECT_DIR} \
 
 WORKDIR /workspace
 
-# Cache-Buster: ändert sich beim neuesten Release
-# (unabhängig davon, ob du "latest_release" nutzt oder einen festen Ref)
+# Cache-Buster: ändert sich, wenn es ein neues Release gibt
 ADD https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases.atom /tmp/releases.atom
 
 # Ref ermitteln (neuester Release-Tag oder gegebener Ref), dann klonen & auschecken
 RUN set -e; \
-    if [ "${GIT_REF}" = "latest_release" ]; then \
-      RESOLVED_REF="$(python - <<'PY'\nimport os, json, urllib.request\nu=urllib.request.urlopen(f\"https://api.github.com/repos/{os.environ['GITHUB_OWNER']}/{os.environ['GITHUB_REPO']}/releases/latest\")\nprint(json.load(u)['tag_name'])\nPY)"; \
-    else \
-      RESOLVED_REF="${GIT_REF}"; \
-    fi; \
-    echo "Using ref: ${RESOLVED_REF}"; \
-    git clone --depth=1 "${GIT_REPO}" "${PROJECT_DIR}"; \
-    cd "${PROJECT_DIR}"; \
-    # Versuche Tag, sonst Branch/Commit
-    git fetch --depth=1 origin "refs/tags/${RESOLVED_REF}:refs/tags/${RESOLVED_REF}" || true; \
-    git checkout -q "refs/tags/${RESOLVED_REF}" 2>/dev/null || git checkout -q "${RESOLVED_REF}"
+  if [ "$GIT_REF" = "latest_release" ]; then \
+    RESOLVED_REF="$(python -c "import json,urllib.request; print(json.load(urllib.request.urlopen('https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest'))['tag_name'])")"; \
+  else \
+    RESOLVED_REF="$GIT_REF"; \
+  fi; \
+  echo "Using ref: $RESOLVED_REF"; \
+  git clone --depth 1 "$GIT_REPO" "$PROJECT_DIR"; \
+  cd "$PROJECT_DIR"; \
+  git fetch --depth 1 origin "refs/tags/$RESOLVED_REF:refs/tags/$RESOLVED_REF" || true; \
+  git checkout -q "refs/tags/$RESOLVED_REF" 2>/dev/null || git checkout -q "$RESOLVED_REF"
 
 WORKDIR /workspace/${PROJECT_DIR}
 
