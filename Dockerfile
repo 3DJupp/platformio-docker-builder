@@ -4,7 +4,7 @@
 ARG PROJECT_DIR=opendtu
 ARG GIT_REPO=https://github.com/tbnobody/OpenDTU.git
 ARG PIO_ENV=olimex_esp32_poe
-ARG GIT_REF=latest_release            # <- "latest_release" = automatische Release-Erkennung
+ARG GIT_REF=latest_release
 ARG GITHUB_OWNER=tbnobody
 ARG GITHUB_REPO=OpenDTU
 
