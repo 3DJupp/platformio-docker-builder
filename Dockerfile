@@ -4,6 +4,9 @@
 ARG PROJECT_DIR=opendtu
 ARG GIT_REPO=https://github.com/tbnobody/OpenDTU.git
 ARG PIO_ENV=olimex_esp32_poe
+ARG GIT_REF=main
+ARG GITHUB_OWNER=tbnobody
+ARG GITHUB_REPO=OpenDTU
 
 # --------------------------------------------------------------------------------
 # Stage 1: Prepare a Python + PlatformIO base image
@@ -33,8 +36,11 @@ FROM pio-base AS builder
 ARG PROJECT_DIR
 ARG GIT_REPO
 ARG PIO_ENV
+ARG GIT_REF
+ARG GITHUB_OWNER
+ARG GITHUB_REPO
 
-# Expose them as environment variables
+# Expose commonly used ones as environment variables
 ENV PROJECT_DIR=${PROJECT_DIR} \
     GIT_REPO=${GIT_REPO} \
     PIO_ENV=${PIO_ENV}
@@ -42,11 +48,15 @@ ENV PROJECT_DIR=${PROJECT_DIR} \
 # Set working directory for cloning/build
 WORKDIR /workspace
 
-# Clone the specified repository (depth=1 for caching)
-RUN git clone --depth=1 ${GIT_REPO} ${PROJECT_DIR}
+# Cache-Buster: ändert sich bei jedem neuen Commit auf ${GIT_REF}
+ADD https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_REF} /tmp/gitref.json
 
-# Change into the project directory
+# Clone auf den gewünschten Branch/Ref
+RUN git clone --depth=1 --branch ${GIT_REF} ${GIT_REPO} ${PROJECT_DIR}
+
+# Change into the project directory & protokolliere gebaute Commit-SHA
 WORKDIR /workspace/${PROJECT_DIR}
+RUN git rev-parse HEAD | tee /tmp/commit.sha
 
 # Run the PlatformIO build for the given environment
 RUN platformio run --environment ${PIO_ENV}
@@ -63,9 +73,9 @@ ARG PIO_ENV
 # Prepare output directory
 WORKDIR /out
 
-# Copy the generated firmware binary from the builder stage,
-# renaming it to a consistent filename.
+# Copy the generated firmware binary and the commit SHA from the builder stage
 COPY --from=builder /workspace/${PROJECT_DIR}/.pio/build/${PIO_ENV}/*.bin ./
+COPY --from=builder /tmp/commit.sha ./commit.sha
 
 # Default command: list the output files
 CMD ["ls", "-l", "/out"]
