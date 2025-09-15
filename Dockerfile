@@ -49,7 +49,7 @@ ENV PROJECT_DIR=${PROJECT_DIR} \
 WORKDIR /workspace
 
 # Cache-Buster: ändert sich bei jedem neuen Commit auf ${GIT_REF}
-ADD https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_REF} /tmp/gitref.json
+ADD https://codeload.github.com/${GITHUB_OWNER}/${GITHUB_REPO}/tar.gz/refs/heads/${GIT_REF} /tmp/gitref.tgz
 
 # Clone auf den gewünschten Branch/Ref
 RUN git clone --depth=1 --branch ${GIT_REF} ${GIT_REPO} ${PROJECT_DIR}
